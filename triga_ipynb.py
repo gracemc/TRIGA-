@@ -7,7 +7,7 @@ Original file is located at
     https://colab.research.google.com/drive/1vl7V4FP1xNyTfwJTvC1DepDQsDD9bV7-
 """
 # Commented out IPython magic to ensure Python compatibility.
-# %matplotlib inline
+ %matplotlib inline
 
 # borated water
 water = openmc.Material(name='Borated Water')
@@ -442,97 +442,3 @@ settings_file.export_to_xml()
 
 openmc.run()
 
-# Create root Universe
-fuel_universe = openmc.Universe(universe_id=0, name='fuel universe')
-fuel_universe.add_cell(fuel_cell)
-
-# Create cylinders for the fuel cell
-rod_outer_radius = openmc.ZCylinder(x0=0.0, y0=0.0, r=0.635)
-uzrh_outer_radius = openmc.ZCylinder(x0=0.0, y0=0.0, r=3.6449)
-molybdenum_outer_radius = openmc.ZCylinder(x0=0.0, y0=0.0, r=3.6449)
-graphite_outer_radius = openmc.ZCylinder(x0=0.0, y0=0.0, r=3.6449)
-ss304_outer_radius = openmc.ZCylinder(x0=0.0, y0=0.0, r=3.6449)
-clad_outer_radius = openmc.ZCylinder(x0=0.0, y0=0.0, r=3.75412)
-
-# Z axis fuel cell
-rod_min = openmc.ZPlane(z0 = -55.079265)
-rod_max = openmc.ZPlane(z0 = -16.979265)
-uzrh_min = openmc.ZPlane(z0 = -55.079265)
-uzrh_max = openmc.ZPlane(z0 = -16.979265)
-molybdenum_min = openmc.ZPlane(z0 = -55.15864)
-molybdenum_max = openmc.ZPlane(z0 = -55.079265)
-graphite_upper_min = openmc.ZPlane(z0 = -16.979265)
-graphite_upper_max = openmc.ZPlane(z0 = -10.375265)
-graphite_lower_min = openmc.ZPlane(z0 = -64.621664)
-graphite_lower_max = openmc.ZPlane(z0 = -55.15864)
-ss304_upper_min = openmc.ZPlane(z0 = -10.375265)
-ss304_upper_max = openmc.ZPlane(z0 = +0)
-ss304_lower_min = openmc.ZPlane(z0 = -72.0598)
-ss304_lower_max = openmc.ZPlane(z0 = -64.621664)
-clad_min = openmc.ZPlane(z0 = -72.0598)
-clad_max = openmc.ZPlane(z0 = +0)
-
-
-# Create boundary planes to surround the geometry
-min_x = openmc.XPlane(x0=-5, boundary_type='vacuum')
-max_x = openmc.XPlane(x0=+5, boundary_type='vacuum')
-min_y = openmc.YPlane(y0=-5, boundary_type='vacuum')
-max_y = openmc.YPlane(y0=+5, boundary_type='vacuum')
-min_z = openmc.ZPlane(z0=-200, boundary_type='vacuum')
-max_z = openmc.ZPlane(z0=+10, boundary_type='vacuum')
-
-# Create a Universe to encapsulate a fuel pin
-fuel_universe = openmc.Universe(name='UZrH Fuel Cell')
-
-# Create rod cell
-rod_cell = openmc.Cell(name='Zr Rod')
-rod_cell.fill = zirconium
-rod_cell.region = -rod_outer_radius & +rod_min & -rod_max
-fuel_universe.add_cell(rod_cell)
-
-# Create uzrh cell
-uzrh_cell = openmc.Cell(name='UZrH')
-uzrh_cell.fill = uzrh
-uzrh_cell.region = +rod_outer_radius & -uzrh_outer_radius & +uzrh_min & -uzrh_max
-fuel_universe.add_cell(uzrh_cell)
-
-# Create molybdenum disk
-molybdenum_cell = openmc.Cell(name='Molybdenum')
-molybdenum_cell.fill = molybdenum
-molybdenum_cell.region = -molybdenum_outer_radius & +molybdenum_min & -molybdenum_max
-fuel_universe.add_cell(molybdenum_cell)
-
-# Create graphite cell
-graphite_cell = openmc.Cell(name='Graphite')
-graphite_cell.fill = graphite
-graphite_cell.region = -graphite_outer_radius & +graphite_upper_min & -graphite_upper_max & +graphite_lower_min & -graphite_lower_max
-fuel_universe.add_cell(graphite_cell)
-
-# Create ss304 cell
-ss304_cell = openmc.Cell(name='Stainless Steel 304')
-ss304_cell.fill = ss304
-ss304_cell.region = -ss304_outer_radius & +ss304_upper_min & -ss304_upper_max & +ss304_lower_min & -ss304_lower_max
-fuel_universe.add_cell(ss304_cell)
-
-# Create a clad Cell
-clad_cell = openmc.Cell(name='Stainless Steel 304 Cladding')
-clad_cell.fill = ss304
-clad_cell.region = -clad_outer_radius & +clad_min & -clad_max
-fuel_universe.add_cell(clad_cell)
-
-# Create a moderator Cell
-moderator_cell = openmc.Cell(name='Moderator')
-moderator_cell.fill = water
-moderator_cell.region = +clad_outer_radius & +clad_min & -clad_max
-fuel_universe.add_cell(moderator_cell)
-
-
-# Add boundary planes
-fuel_cell.region = +min_x & -max_x & +min_y & -max_y & +min_z & -max_z
-
-
-geometry = openmc.Geometry(fuel_universe)
-
-geometry.export_to_xml()
-
-fuel_universe.plot(width=(50, 200), basis='yz', color_by='material', colors={ss304:'fuchsia'})
